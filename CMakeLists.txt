@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.31)
+project(llvm)
+
+if (ANDROID_ABI STREQUAL "arm64-v8a")
+    set(COMPILER_ARM 1)
+else()
+    set(COMPILER_X86 1)
+endif()
+
+if (COMPILER_ARM)
+    set(LLVM_TARGETS_TO_BUILD "AArch64" CACHE STRING "Semicolon-separated list of targets to build, or \"all\".")
+    set(LLVM_TARGET_ARCH "${CMAKE_SYSTEM_PROCESSOR}-none-linux-android${ANDROID_NATIVE_API_LEVEL}" CACHE STRING "")
+else()
+    set(LLVM_TARGETS_TO_BUILD "X86" CACHE STRING "Semicolon-separated list of targets to build, or \"all\".")
+endif()
+
+option(LLVM_BUILD_RUNTIME "Build the LLVM runtime libraries." OFF)
+option(LLVM_BUILD_TOOLS "Build the LLVM tools. If OFF, just generate build targets." OFF)
+option(LLVM_INCLUDE_BENCHMARKS "Generate benchmark targets. If OFF, benchmarks can't be built." OFF)
+option(LLVM_INCLUDE_DOCS "Generate build targets for llvm documentation." OFF)
+option(LLVM_INCLUDE_EXAMPLES "Generate build targets for the LLVM examples" OFF)
+option(LLVM_INCLUDE_TESTS "Generate build targets for the LLVM unit tests." OFF)
+option(LLVM_INCLUDE_TOOLS "Generate build targets for the LLVM tools." OFF)
+option(LLVM_INCLUDE_UTILS "Generate build targets for the LLVM utils." OFF)
+option(LLVM_CCACHE_BUILD "Set to ON for a ccache enabled build" OFF)
+set(LLVM_ENABLE_WARNINGS OFF CACHE BOOL "Enable compiler warnings.")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    if(COMPILER_X86)
+        set(LLVM_USE_INTEL_JITEVENTS ON)
+    endif()
+    set(LLVM_USE_PERF ON)
+endif()
+
+# LLVM needs to be built out-of-tree
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/llvm-project/llvm ${CMAKE_CURRENT_BINARY_DIR}/llvm_build)
+set(LLVM_DIR "${CMAKE_CURRENT_BINARY_DIR}/llvm_build/lib/cmake/llvm/")
+
+find_package(LLVM 20.1 CONFIG)
+if(NOT LLVM_FOUND)
+    message(FATAL_ERROR "Couldn't build LLVM from the submodule. You might need to run `git submodule update --init`")
+endif()
