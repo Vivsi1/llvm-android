@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.21) 
 project(llvm)
 
 if (ANDROID_ABI STREQUAL "arm64-v8a")
@@ -32,11 +32,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(LLVM_USE_PERF ON)
 endif()
 
-# LLVM needs to be built out-of-tree
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/llvm-project/llvm ${CMAKE_CURRENT_BINARY_DIR}/llvm_build)
 set(LLVM_DIR "${CMAKE_CURRENT_BINARY_DIR}/llvm_build/lib/cmake/llvm/")
 
-find_package(LLVM 20.1 CONFIG)
+find_package(LLVM 19.1 CONFIG REQUIRED)
 if(NOT LLVM_FOUND)
-    message(FATAL_ERROR "Couldn't build LLVM from the submodule. You might need to run `git submodule update --init`")
+    message(FATAL_ERROR "Couldn't build LLVM 19.1 from the submodule. Run `git submodule update --init` and ensure the correct version is checked out.")
 endif()
